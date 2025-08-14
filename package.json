@@ -1,0 +1,59 @@
+{
+  "name": "pantry",
+  "version": "1.0.0",
+  "description": "A meal planning application with recipe management and shopping list generation",
+  "main": "dist/main.js",
+  "homepage": "./",
+  "scripts": {
+    "electron": "electron .",
+    "dev": "concurrently \"npm run build:watch\" \"npm run electron:dev\"",
+    "build": "tsc && npm run copy:renderer",
+    "build:watch": "tsc --watch",
+    "copy:renderer": "mkdir -p dist/renderer && cp -r src/renderer/* dist/renderer/",
+    "electron:dev": "wait-on dist/main.js && npm run copy:renderer && electron .",
+    "pack": "electron-builder --dir",
+    "dist": "npm run build && electron-builder",
+    "dist:mac": "npm run build && electron-builder --mac"
+  },
+  "keywords": [
+    "meal-planning",
+    "recipes",
+    "shopping-list"
+  ],
+  "author": "",
+  "license": "ISC",
+  "build": {
+    "appId": "com.pantry.app",
+    "productName": "Pantry",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "src/renderer/**/*",
+      "assets/**/*",
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.lifestyle"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "concurrently": "^9.2.0",
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "wait-on": "^8.0.4"
+  },
+  "dependencies": {
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@types/uuid": "^10.0.0",
+    "electron-squirrel-startup": "^1.0.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "uuid": "^11.1.0"
+  }
+}
