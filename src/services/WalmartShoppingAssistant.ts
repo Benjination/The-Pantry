@@ -403,7 +403,17 @@ class WalmartShoppingAssistant {
                         <span class="rating">★★★★☆ \${mockProduct.rating} (\${mockProduct.reviewCount} reviews)</span><br>
                         <span class="price">$\${mockProduct.price}</span><br>
                         <small>Brand: \${mockProduct.brand} | \${mockProduct.inStock ? 'In Stock: ✅' : 'Limited Stock: ⚠️'}</small><br>
-                        <small>Category: \${mockProduct.category}</small>
+                        <small>Category: \${mockProduct.category}</small><br>
+                        <div style="margin-top: 10px;">
+                            <button class="btn" style="background: #0071ce; padding: 8px 16px; font-size: 0.9em; margin-right: 5px;" 
+                                    onclick="addSingleItemToCart(\${index})">
+                                🛒 Add To Cart
+                            </button>
+                            <button class="btn" style="background: #004c91; padding: 8px 16px; font-size: 0.9em;" 
+                                    onclick="openWalmartProduct(\${index})">
+                                🔍 Find on Walmart
+                            </button>
+                        </div>
                     \`;
                     
                     processedItems.push({
@@ -468,7 +478,7 @@ class WalmartShoppingAssistant {
         }
 
         async function addAllToCart() {
-            updateStatus('🛒 Adding items to Walmart cart...', 'loading');
+            updateStatus('🛒 Opening Walmart for smart shopping...', 'loading');
             
             let addedCount = 0;
             const totalItems = processedItems.length;
@@ -479,43 +489,40 @@ class WalmartShoppingAssistant {
                 updateStatus(\`🛒 Opening "\${item.original}" in Walmart (\${i + 1}/\${totalItems})\`, 'loading');
                 
                 try {
-                    // Open Walmart search for specific product
+                    // Create a more precise search query for better results
                     const searchQuery = encodeURIComponent(item.product.name);
                     const walmartUrl = \`https://www.walmart.com/search?q=\${searchQuery}&auto=true\`;
                     
-                    // Create enhanced window with cart automation
-                    const newWindow = window.open('', \`walmart-item-\${i}\`, 'width=900,height=700,scrollbars=yes');
+                    // Open Walmart in a new tab with enhanced automation
+                    const newWindow = window.open(walmartUrl, \`walmart-item-\${i}\`, 'width=1000,height=800,scrollbars=yes,resizable=yes');
                     
                     if (newWindow) {
-                        // Inject our cart automation script
-                        newWindow.document.write(\`
-                            <!DOCTYPE html>
-                            <html>
-                            <head>
-                                <title>Walmart - \${item.product.name}</title>
-                                <style>
-                                    body { font-family: Arial, sans-serif; background: #0071ce; color: white; text-align: center; padding: 50px; }
-                                    .loading { background: white; color: #0071ce; padding: 20px; border-radius: 10px; margin: 20px; }
-                                </style>
-                            </head>
-                            <body>
-                                <h2>🛒 Walmart Smart Shopping</h2>
-                                <div class="loading">
-                                    <h3>Searching for: \${item.product.name}</h3>
-                                    <p>Redirecting to Walmart and attempting to add to cart...</p>
-                                    <p><strong>Price:</strong> $\${item.product.price} | <strong>Rating:</strong> ★\${item.product.rating}</p>
-                                </div>
-                                <script>
-                                    \${getWalmartCartScript()}
-                                    // Redirect to Walmart after a short delay
-                                    setTimeout(function() {
-                                        window.location.href = '\${walmartUrl}';
-                                    }, 1000);
-                                </script>
-                            </body>
-                            </html>
-                        \`);
-                        newWindow.document.close();
+                        // Wait for the window to load, then inject our automation script
+                        setTimeout(() => {
+                            try {
+                                // Inject the cart automation script
+                                const script = newWindow.document.createElement('script');
+                                script.textContent = getWalmartCartScript();
+                                newWindow.document.head.appendChild(script);
+                                
+                                // Also try to focus on the new window to make automation more reliable
+                                newWindow.focus();
+                                
+                            } catch (e) {
+                                console.log('Could not inject script due to security restrictions, using alternative method');
+                                
+                                // If we can't inject the script, show a helpful message
+                                try {
+                                    newWindow.postMessage({
+                                        action: 'addToCart',
+                                        productName: item.product.name,
+                                        price: item.product.price
+                                    }, '*');
+                                } catch (postError) {
+                                    console.log('Cross-origin restrictions prevent automation');
+                                }
+                            }
+                        }, 2000);
                     }
                     
                     addedCount++;
@@ -524,22 +531,90 @@ class WalmartShoppingAssistant {
                     console.error(\`Failed to process item: \${item.original}\`, error);
                 }
                 
-                // Small delay between items to avoid overwhelming
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                // Stagger the opening of tabs to avoid overwhelming the browser
+                await new Promise(resolve => setTimeout(resolve, 2000));
             }
             
-            updateStatus(\`✅ Opened \${addedCount} Walmart product pages! Items will be added automatically or manually.\`, 'success');
+            updateStatus(\`✅ Opened \${addedCount} Walmart product pages with smart automation!\`, 'success');
             
-            // Wait a bit then open the cart page
+            // Wait for items to be processed, then open the cart
             setTimeout(() => {
                 updateStatus('🛒 Opening your Walmart cart to review items...', 'loading');
-                window.open('https://www.walmart.com/cart', '_blank', 'width=1000,height=700');
+                const cartWindow = window.open('https://www.walmart.com/cart', 'walmart-cart', 'width=1000,height=800,scrollbars=yes,resizable=yes');
+                
+                if (cartWindow) {
+                    cartWindow.focus();
+                }
                 
                 // Show completion message
                 setTimeout(() => {
-                    updateStatus(\`🎉 Shopping assistant complete! Check your Walmart cart for \${addedCount} items.\`, 'success');
-                }, 2000);
-            }, (addedCount * 1500) + 3000); // Wait for all windows to process
+                    updateStatus(\`🎉 Smart shopping complete! Check your Walmart cart for \${addedCount} items.\`, 'success');
+                    
+                    // Update the summary to show completion
+                    const summaryText = document.getElementById('summary-text');
+                    if (summaryText) {
+                        const totalPrice = processedItems.reduce((sum, item) => sum + parseFloat(item.product.price), 0);
+                        summaryText.innerHTML = \`
+                            <strong>🎉 Shopping Complete!</strong><br>
+                            \${processedItems.length} items opened in Walmart<br>
+                            Estimated total: <span style="font-size: 1.3em;">$\${totalPrice.toFixed(2)}</span><br>
+                            <small>Check your Walmart cart to review items</small>
+                        \`;
+                    }
+                }, 3000);
+            }, (addedCount * 2000) + 5000); // Wait for all windows to process
+        }
+
+        // Function to add a single item to cart
+        function addSingleItemToCart(itemIndex) {
+            if (itemIndex >= 0 && itemIndex < processedItems.length) {
+                const item = processedItems[itemIndex];
+                
+                // Show status update
+                const statusDiv = document.getElementById(\`status-\${itemIndex}\`);
+                if (statusDiv) {
+                    statusDiv.textContent = '🛒 Opening in Walmart...';
+                }
+                
+                // Open Walmart with the specific product
+                const searchQuery = encodeURIComponent(item.product.name);
+                const walmartUrl = \`https://www.walmart.com/search?q=\${searchQuery}&auto=true\`;
+                
+                const newWindow = window.open(walmartUrl, \`walmart-single-\${itemIndex}\`, 'width=1000,height=800,scrollbars=yes,resizable=yes');
+                
+                if (newWindow) {
+                    newWindow.focus();
+                    
+                    // Inject automation script after a delay
+                    setTimeout(() => {
+                        try {
+                            const script = newWindow.document.createElement('script');
+                            script.textContent = getWalmartCartScript();
+                            newWindow.document.head.appendChild(script);
+                        } catch (e) {
+                            console.log('Could not inject automation script due to security restrictions');
+                        }
+                    }, 2000);
+                    
+                    // Update status
+                    setTimeout(() => {
+                        if (statusDiv) {
+                            statusDiv.textContent = '✅ Opened in Walmart - add to cart manually if needed';
+                        }
+                    }, 3000);
+                }
+            }
+        }
+
+        // Function to open Walmart product page for viewing
+        function openWalmartProduct(itemIndex) {
+            if (itemIndex >= 0 && itemIndex < processedItems.length) {
+                const item = processedItems[itemIndex];
+                const searchQuery = encodeURIComponent(item.product.name);
+                const walmartUrl = \`https://www.walmart.com/search?q=\${searchQuery}&auto=true\`;
+                
+                window.open(walmartUrl, \`walmart-view-\${itemIndex}\`, 'width=1000,height=800,scrollbars=yes,resizable=yes');
+            }
         }
 
         // Event listeners
@@ -564,53 +639,138 @@ class WalmartShoppingAssistant {
         });
 
         // Helper function to assist with Walmart cart automation
-        // This creates a small script that can be injected into Walmart pages
+        // This creates a more sophisticated script that can navigate to specific products
         function getWalmartCartScript() {
             return \`
-                // Walmart Add-to-Cart Helper Script
+                // Enhanced Walmart Add-to-Cart Helper Script
                 setTimeout(function() {
                     try {
-                        // Look for add to cart buttons with various selectors
-                        const addToCartSelectors = [
-                            '[data-automation-id="add-to-cart"]',
-                            '[aria-label*="Add to cart"]',
-                            'button[data-automation-id="add-to-cart-button"]',
-                            '.prod-ProductCTA button',
-                            'button:contains("Add to cart")'
-                        ];
+                        console.log('Walmart cart automation started');
                         
-                        for (const selector of addToCartSelectors) {
-                            const button = document.querySelector(selector);
-                            if (button && button.textContent.toLowerCase().includes('add')) {
-                                console.log('Found add to cart button:', selector);
-                                button.click();
+                        // First, check if we're on a search results page
+                        if (window.location.href.includes('/search')) {
+                            console.log('On search results page, looking for the first product...');
+                            
+                            // Look for product links in search results
+                            const productSelectors = [
+                                '[data-testid="item-stack"] a[href*="/ip/"]',
+                                '[data-automation-id="product-title"] a',
+                                '.search-result-gridview-item a[href*="/ip/"]',
+                                '.search-result-listview-item a[href*="/ip/"]',
+                                'a[href*="/ip/"][data-automation-id="product-title"]'
+                            ];
+                            
+                            let productLink = null;
+                            for (const selector of productSelectors) {
+                                productLink = document.querySelector(selector);
+                                if (productLink) {
+                                    console.log('Found product link with selector:', selector);
+                                    break;
+                                }
+                            }
+                            
+                            if (productLink) {
+                                // Show navigation message
+                                const navMessage = document.createElement('div');
+                                navMessage.innerHTML = '🔍 Found product! Navigating to product page...';
+                                navMessage.style.cssText = 'position:fixed;top:20px;right:20px;background:#4CAF50;color:white;padding:15px;border-radius:8px;z-index:9999;font-family:Arial;font-weight:bold;';
+                                document.body.appendChild(navMessage);
                                 
-                                // Show success message
-                                const message = document.createElement('div');
-                                message.innerHTML = '✅ Added to cart! This tab will close automatically.';
-                                message.style.cssText = 'position:fixed;top:20px;right:20px;background:#4CAF50;color:white;padding:15px;border-radius:8px;z-index:9999;font-family:Arial;';
-                                document.body.appendChild(message);
+                                // Click the product link to go to product detail page
+                                setTimeout(() => {
+                                    productLink.click();
+                                }, 1500);
                                 
-                                // Close tab after delay
-                                setTimeout(() => window.close(), 3000);
-                                break;
+                                return; // Exit here, the script will run again on the product page
+                            } else {
+                                console.log('No product links found, trying alternative approach...');
+                                // If no direct link found, try clicking the first add to cart button on search results
+                                const searchAddButtons = document.querySelectorAll('[data-automation-id="add-to-cart"], button[aria-label*="Add"], .add-to-cart-btn');
+                                if (searchAddButtons.length > 0) {
+                                    searchAddButtons[0].click();
+                                    showSuccessMessage();
+                                    return;
+                                }
                             }
                         }
                         
-                        // If no add to cart button found, show manual instruction
-                        if (!document.querySelector('.added-to-cart-message')) {
-                            const instruction = document.createElement('div');
-                            instruction.innerHTML = '📋 Please click "Add to cart" manually. This tab will close in 10 seconds.';
-                            instruction.style.cssText = 'position:fixed;top:20px;right:20px;background:#FF9800;color:white;padding:15px;border-radius:8px;z-index:9999;font-family:Arial;';
-                            instruction.className = 'added-to-cart-message';
-                            document.body.appendChild(instruction);
+                        // If we're on a product detail page, try to add to cart
+                        if (window.location.href.includes('/ip/')) {
+                            console.log('On product detail page, looking for add to cart button...');
                             
-                            setTimeout(() => window.close(), 10000);
+                            // Wait a bit for the page to fully load
+                            setTimeout(() => {
+                                // Look for add to cart buttons on product pages
+                                const addToCartSelectors = [
+                                    '[data-automation-id="add-to-cart-button"]',
+                                    '[data-automation-id="add-to-cart"]',
+                                    'button[data-automation-id*="add-to-cart"]',
+                                    '[aria-label*="Add to cart"]',
+                                    'button:contains("Add to cart")',
+                                    '.prod-ProductCTA button',
+                                    '#add-on-atc-container button[type="button"]'
+                                ];
+                                
+                                let addButton = null;
+                                for (const selector of addToCartSelectors) {
+                                    if (selector.includes(':contains')) {
+                                        // Handle text-based selector
+                                        const buttons = Array.from(document.querySelectorAll('button'));
+                                        addButton = buttons.find(btn => btn.textContent && btn.textContent.toLowerCase().includes('add to cart'));
+                                    } else {
+                                        addButton = document.querySelector(selector);
+                                    }
+                                    
+                                    if (addButton && !addButton.disabled) {
+                                        console.log('Found add to cart button with selector:', selector);
+                                        break;
+                                    }
+                                }
+                                
+                                if (addButton && !addButton.disabled) {
+                                    console.log('Clicking add to cart button...');
+                                    addButton.click();
+                                    showSuccessMessage();
+                                } else {
+                                    console.log('Add to cart button not found or disabled');
+                                    showManualInstruction();
+                                }
+                            }, 2000);
+                            
+                            return;
                         }
+                        
+                        // Fallback: show manual instruction
+                        showManualInstruction();
+                        
                     } catch (e) {
-                        console.log('Cart automation not available on this page');
+                        console.log('Cart automation error:', e);
+                        showManualInstruction();
                     }
-                }, 2000);
+                    
+                    function showSuccessMessage() {
+                        const message = document.createElement('div');
+                        message.innerHTML = '✅ Added to cart! This tab will close automatically.';
+                        message.style.cssText = 'position:fixed;top:20px;right:20px;background:#4CAF50;color:white;padding:15px;border-radius:8px;z-index:9999;font-family:Arial;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+                        document.body.appendChild(message);
+                        
+                        // Close tab after success
+                        setTimeout(() => window.close(), 3000);
+                    }
+                    
+                    function showManualInstruction() {
+                        if (document.querySelector('.pantry-manual-instruction')) return; // Don't show multiple times
+                        
+                        const instruction = document.createElement('div');
+                        instruction.className = 'pantry-manual-instruction';
+                        instruction.innerHTML = '📋 Please click "Add to cart" manually.<br>This tab will close in 15 seconds.';
+                        instruction.style.cssText = 'position:fixed;top:20px;right:20px;background:#FF9800;color:white;padding:15px;border-radius:8px;z-index:9999;font-family:Arial;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+                        document.body.appendChild(instruction);
+                        
+                        setTimeout(() => window.close(), 15000);
+                    }
+                    
+                }, 3000); // Wait 3 seconds for page to load
             \`;
         }
     </script>
