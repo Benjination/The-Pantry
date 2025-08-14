@@ -1,6 +1,6 @@
 {
   "name": "pantry",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A meal planning application with recipe management and shopping list generation",
   "main": "dist/main.js",
   "homepage": "./",
