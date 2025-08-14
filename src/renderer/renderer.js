@@ -523,16 +523,11 @@ function renderShoppingList(categorizedList, weekStart = null) {
     actionsCard.innerHTML = `
         <h3>Shopping List Actions</h3>
         <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-            <button class="button" id="walmart-add-to-cart-btn" style="background: linear-gradient(135deg, #004c91, #0071ce); color: white; font-weight: bold;">🤖 Smart Walmart Shopping</button>
-            <button class="button secondary" id="walmart-login-btn">🏪 Login to Walmart</button>
             <button class="button" id="add-custom-item-btn">➕ Add Custom Item</button>
             <button class="button" id="share-text-btn">📱 Text List</button>
             <button class="button" id="share-email-btn">📧 Email List</button>
             <button class="button secondary" id="copy-list-btn">📋 Copy List</button>
             <button class="button secondary" id="print-list-btn">🖨️ Print List</button>
-        </div>
-        <div id="walmart-status" style="margin-top: 10px; padding: 10px; border-radius: 8px; background: rgba(0, 76, 145, 0.1); color: #004c91; font-size: 14px; display: none;">
-            <strong>Smart Shopping:</strong> <span id="walmart-status-text">Opens intelligent shopping assistant in one tab</span>
         </div>
     `;
     container.appendChild(actionsCard);
@@ -600,36 +595,6 @@ function renderShoppingList(categorizedList, weekStart = null) {
     // Add custom item button
     document.getElementById('add-custom-item-btn')?.addEventListener('click', () => {
         showAddCustomItemModal(categorizedList, weekStart);
-    });
-
-    // Walmart integration buttons
-    document.getElementById('walmart-login-btn')?.addEventListener('click', async () => {
-        try {
-            await window.electronAPI.openWalmartLogin();
-            showWalmartStatus('Opening Walmart login page...');
-        } catch (error) {
-            showError('Failed to open Walmart login page');
-        }
-    });
-
-    document.getElementById('walmart-add-to-cart-btn')?.addEventListener('click', async () => {
-        try {
-            const allItems = Object.values(categorizedList).flat();
-            const itemNames = allItems.map(item => item.ingredient.name);
-            
-            if (itemNames.length === 0) {
-                showError('No items in shopping list to add to cart');
-                return;
-            }
-
-            showWalmartStatus(`Opening smart shopping assistant for ${itemNames.length} items...`);
-            
-            await window.electronAPI.openWalmartShoppingAssistant(itemNames);
-            showWalmartStatus(`Smart shopping assistant opened! It will automatically find the best products for you.`);
-        } catch (error) {
-            console.error('Walmart integration error:', error);
-            showError('Failed to open smart shopping assistant');
-        }
     });
 
     // Add event listeners for actions
@@ -1128,21 +1093,6 @@ function showSuccessMessage(message) {
     setTimeout(() => {
         document.body.removeChild(successDiv);
     }, 3000);
-}
-
-function showWalmartStatus(message) {
-    const statusDiv = document.getElementById('walmart-status');
-    const statusText = document.getElementById('walmart-status-text');
-    
-    if (statusDiv && statusText) {
-        statusText.textContent = message;
-        statusDiv.style.display = 'block';
-        
-        // Hide after 5 seconds
-        setTimeout(() => {
-            statusDiv.style.display = 'none';
-        }, 5000);
-    }
 }
 
 function showError(message) {

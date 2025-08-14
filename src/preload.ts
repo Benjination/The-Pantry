@@ -25,15 +25,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCategorizedShoppingList: (items: ShoppingListItem[]): Promise<CategorizedShoppingList> => 
     ipcRenderer.invoke('shopping:getCategorizedList', items),
   createShoppingListText: (items: ShoppingListItem[]): Promise<string> => 
-    ipcRenderer.invoke('shopping:createShoppingText', items),
-
-  // Walmart integration
-  openWalmartLogin: (): Promise<void> => ipcRenderer.invoke('walmart:openLogin'),
-  openWalmartGrocery: (): Promise<void> => ipcRenderer.invoke('walmart:openGrocery'),
-  searchWalmartProduct: (query: string): Promise<void> => 
-    ipcRenderer.invoke('walmart:openProductSearch', query),
-  openWalmartShoppingAssistant: (items: string[]): Promise<void> => 
-    ipcRenderer.invoke('walmart:generateShoppingAssistant', items)
+    ipcRenderer.invoke('shopping:createShoppingText', items)
 });
 
 // Type declaration for the exposed API
@@ -50,10 +42,6 @@ declare global {
       generateShoppingListFromWeek: (weekStart: string) => Promise<ShoppingListItem[]>;
       getCategorizedShoppingList: (items: ShoppingListItem[]) => Promise<CategorizedShoppingList>;
       createShoppingListText: (items: ShoppingListItem[]) => Promise<string>;
-      openWalmartLogin: () => Promise<void>;
-      openWalmartGrocery: () => Promise<void>;
-      searchWalmartProduct: (query: string) => Promise<void>;
-      openWalmartShoppingAssistant: (items: string[]) => Promise<void>;
     };
   }
 }
