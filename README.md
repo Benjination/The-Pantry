@@ -2,6 +2,29 @@
 
 A beautiful and intuitive meal planning application for macOS that helps you organize recipes, plan weekly menus, and generate smart shopping lists.
 
+## 📱 Download & Install
+
+### Easy Installation (Recommended)
+1. **Download** the latest version from the [Releases page](https://github.com/Benjination/The-Pantry/releases)
+2. **Download** `Pantry-1.1.0-arm64.dmg` (for Apple Silicon Macs) 
+3. **Open** the downloaded DMG file
+4. **Drag** Pantry.app to your Applications folder
+5. **Launch** Pantry from Applications or Spotlight
+
+### System Requirements
+- **macOS 10.15** or later
+- **Apple Silicon (M1/M2)** or Intel Mac
+- **150 MB** available storage space
+
+### Platform Availability
+- ✅ **macOS** - Full native app (Apple Silicon & Intel)
+- ✅ **Windows** - Windows 10/11 (64-bit) - *Can be built on request*
+- ✅ **Linux** - Ubuntu/Debian-based distributions (64-bit) - *Can be built on request*
+- ❌ **iPhone/iPad** - Not supported (Electron limitation)
+- ❌ **Android** - Not supported (Electron limitation)
+
+> **Note**: While Windows and Linux builds are technically possible, only macOS builds are currently provided in releases. Contact the maintainer if you need builds for other platforms.
+
 ## Features
 
 ### 📝 Recipe Management
@@ -22,7 +45,7 @@ A beautiful and intuitive meal planning application for macOS that helps you org
 - Categorized by store sections (produce, dairy, meat, etc.)
 - Consolidates duplicate ingredients across recipes
 - Print-friendly format
-- Walmart integration for online grocery ordering
+- Export as text for easy sharing
 
 ### 🍎 Native macOS Experience
 - Built specifically for macOS
@@ -77,13 +100,38 @@ src/
 - `npm run build` - Build TypeScript files
 - `npm run electron` - Run the app
 - `npm run pack` - Package without creating installer
-- `npm run dist` - Create distributable packages
+- `npm run dist` - Create distributable packages (current platform)
 - `npm run dist:mac` - Create macOS app bundle
+- `npm run dist:win` - Create Windows installer (NSIS)
+- `npm run dist:linux` - Create Linux packages (AppImage & DEB)
+- `npm run dist:all` - Create packages for all platforms
 
 ### Data Storage
 The app stores data locally in JSON files:
 - **Recipes**: `~/Library/Application Support/pantry/recipes.json`
 - **Menu Plans**: `~/Library/Application Support/pantry/menu-plans.json`
+
+## 📱 Mobile Access & Alternatives
+
+Since Pantry is a desktop application, here are some options for mobile meal planning:
+
+### iPhone/iPad Alternatives
+While Pantry isn't available on iOS, you can:
+- **Export shopping lists** as text and copy to your phone
+- **Email shopping lists** to yourself for mobile access
+- **Use similar apps** like:
+  - Mela (Recipe Manager)
+  - Paprika Recipe Manager
+  - Plan to Eat
+  - BigOven
+
+### Future Mobile Support
+A mobile version would require:
+- Complete rewrite using React Native or Swift
+- Cloud sync for data sharing between devices
+- Different UI optimized for touch interfaces
+
+*If there's significant interest in mobile support, it could be considered for a future major version.*
 
 ## Usage
 
@@ -103,8 +151,8 @@ The app stores data locally in JSON files:
 1. Go to the Shopping List view
 2. Select the week you want to shop for
 3. Click "Generate List" to create a categorized shopping list
-4. Use "Create Walmart List" to format for online grocery ordering
-5. Print the list for in-store shopping
+4. Use the action buttons to share, email, or print the list
+5. Copy the list text for use in grocery apps
 
 ## Features Coming Soon
 - Recipe import from URLs
